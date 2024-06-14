@@ -1,0 +1,40 @@
+---
+- name: Установка, настройка и проверка доступности Nginx
+  hosts: myhosts
+  become: yes
+
+  tasks:
+    - name: Установка пакета Nginx
+      package:
+        name: nginx
+        state: present
+
+    - name: Копирование конфигурационного файла Nginx
+      template:
+        src: nginx.conf.j2  # Путь к вашему шаблону конфигурационного файла
+        dest: /etc/nginx/nginx.conf
+      notify: Restart Nginx
+
+    - name: Запуск службы Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Проверка доступности Nginx на порту 80
+      wait_for:
+        port: 80
+        state: started
+      ignore_errors: yes
+
+    - name: Проверка доступности Nginx на порту 443
+      wait_for:
+        port: 443
+        state: started
+      ignore_errors: yes
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
